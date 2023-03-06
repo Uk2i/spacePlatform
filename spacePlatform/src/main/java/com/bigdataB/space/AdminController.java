@@ -64,6 +64,43 @@ public class AdminController {
 		return "admin/admin_insertCategory";
 	}
 
+	
+	@RequestMapping(value = "/admin_insertCategory.do", method = RequestMethod.POST) // 카테고리 입력
+	public String cate_insert(HttpServletRequest req, @ModelAttribute SpaceTypeDTO dto, BindingResult result) {
+		
+		if (result.hasErrors()) {
+			dto.setCate_img("");
+		}
+		
+		MultipartHttpServletRequest mr = (MultipartHttpServletRequest) req;
+		MultipartFile file = mr.getFile("cate_img");
+		HttpSession session = req.getSession();
+		
+		String upPath = session.getServletContext().getRealPath("/resources/img/cateIcon");
+		
+		File target = new File(upPath, file.getOriginalFilename());
+		
+		try {
+			file.transferTo(target);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		dto.setCate_img(file.getOriginalFilename());
+		
+		int res = adminMapper.insertCate(dto);
+		if (res > 0) {
+			req.setAttribute("msg", "카테고리 등록 성공!");
+			req.setAttribute("url", "admin_listCategory.do");
+		} else {
+			req.setAttribute("msg", "카테고리 등록 실패!!");
+			req.setAttribute("url", "admin_insertCategory.do");
+		}
+		return "message";
+	}
+
+	
+	
 	@RequestMapping("/admin_listCategory.do")
 	public String admin_listCategory(HttpServletRequest req, @RequestParam Map<String, Object> map, String pageNum,String sort) {
 		if (!map.containsKey("sort")) { // 카테고리 목록 불러오기
@@ -523,39 +560,6 @@ public class AdminController {
 		return resMap;
 	}
 
-	@RequestMapping(value = "/admin_insertCategory.do", method = RequestMethod.POST) // 카테고리 입력
-	public String cate_insert(HttpServletRequest req, @ModelAttribute SpaceTypeDTO dto, BindingResult result) {
-
-		if (result.hasErrors()) {
-			dto.setCate_img("");
-		}
-
-		MultipartHttpServletRequest mr = (MultipartHttpServletRequest) req;
-		MultipartFile file = mr.getFile("cate_img");
-		HttpSession session = req.getSession();
-
-		String upPath = session.getServletContext().getRealPath("/resources/img/cateIcon");
-
-		File target = new File(upPath, file.getOriginalFilename());
-
-		try {
-			file.transferTo(target);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		dto.setCate_img(file.getOriginalFilename());
-
-		int res = adminMapper.insertCate(dto);
-		if (res > 0) {
-			req.setAttribute("msg", "카테고리 등록 성공!");
-			req.setAttribute("url", "admin_listCategory.do");
-		} else {
-			req.setAttribute("msg", "카테고리 등록 실패!!");
-			req.setAttribute("url", "admin_insertCategory.do");
-		}
-		return "message";
-	}
 
 	@RequestMapping("/admin_listRoom.do") // 호스트 공간관리 목록 불러오기
 	public String admin_listRoom(HttpServletRequest req, @RequestParam Map<String, Object> map,
